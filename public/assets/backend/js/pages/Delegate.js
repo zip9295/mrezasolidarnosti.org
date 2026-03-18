@@ -5,9 +5,18 @@ export default class Delegate extends CrudPage {
     #data;
     #formTabs;
     #formAction;
-    modalConfig = {
-        width: '100%',
-        height:'100%'
+    constructor() {
+        super();
+        this.dataTableOptions = {
+            enableCheckboxes: true,
+            shiftCheckboxModifier: true
+        };
+        this.modalOptions = {
+            createModalWidth: '70%',
+            createModalHeight: '70%',
+            editModalWidth: '70%',
+            editModalHeight: '70%'
+        }
     }
 
     actionFilter = (action, entity) => {

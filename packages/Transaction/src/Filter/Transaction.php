@@ -26,17 +26,24 @@ class Transaction implements FilterInterface
         $alnum = new Alnum(true);
         $int = new ToInt();
 
+        $beneficiaryType = \Solidarity\Transaction\Entity\Transaction::BENEFICIARY_TYPE_EDUCATOR;
+        $beneficiaryId = $postData['educator'];
+        if ($postData['educator'] === '' && $postData['beneficiary'] !== '') {
+            $beneficiaryType = \Solidarity\Transaction\Entity\Transaction::BENEFICIARY_TYPE_BENEFICIARY;
+            $beneficiaryId = $postData['beneficiary'];
+        }
+
         $data = [
             'id' => (isset($postData['id'])) ? $int->filter($postData['id']) : null,
-//            'name' => $postData['name'],
-//            'accountNumber' => $postData['accountNumber'],
-//            'email' => $postData['email'],
+            'beneficiaryId' => $beneficiaryId,
+            'beneficiaryType' => $beneficiaryType,
+            'project' => $postData['project'],
             'amount' => $postData['amount'],
             'comment' => $postData['comment'],
             'status' => $postData['status'],
             'educator' => $postData['educator'],
             'donor' => $postData['donor'],
-//            'archived' => $postData['archived'] ?? 0,
+            'donorConfirmed' => $postData['donorConfirmed'],
 //            'round' => $postData['round'] ?? 1,
             CSRF::TOKEN_NAME => $postData[CSRF::TOKEN_NAME],
         ];

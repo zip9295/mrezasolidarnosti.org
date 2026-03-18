@@ -10,7 +10,7 @@
     }
   ],
   "require": {
-    "dj_avolak/skeletor": "5.x-dev",
+    "dj_avolak/skeletor": "6.x-dev",
     "symfony/string": "^7",
     "laminas/laminas-session": "^2.21.0",
     "nesbot/carbon": "*",
@@ -34,12 +34,13 @@
       "Solidarity\\Transliterator\\": "packages/Transliterator/src",
       "Solidarity\\Donor\\": "packages/Donor/src",
       "Solidarity\\Transaction\\": "packages/Transaction/src",
-      "Solidarity\\Educator\\": "packages/Educator/src",
       "Solidarity\\School\\": "packages/School/src",
       "Solidarity\\SchoolType\\": "packages/SchoolType/src",
       "Solidarity\\City\\": "packages/City/src",
       "Solidarity\\User\\": "packages/User/src",
-      "Solidarity\\Delegate\\": "packages/Delegate/src"
+      "Solidarity\\Delegate\\": "packages/Delegate/src",
+      "Solidarity\\Beneficiary\\": "packages/Beneficiary/src",
+      "Solidarity\\Period\\": "packages/Period/src"
     }
   },
   "config": {

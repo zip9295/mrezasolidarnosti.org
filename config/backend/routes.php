@@ -19,12 +19,16 @@
 return [
     // backend
     [['GET'], '/', \Solidarity\Backend\Action\Index::class],
-    [['GET', 'POST'], '/login/{action}[/{token}]', \Skeletor\Login\Controller\LoginController::class],
+    [['GET'], '/login/logout', \Solidarity\Backend\Action\Logout::class],
+    [['GET', 'POST'], '/login/user/{action}[/{token}]', \Skeletor\Login\Controller\LoginController::class],
+    [['GET', 'POST'], '/login/delegate/{action}[/{token}]', \Solidarity\Backend\Controller\DelegateLoginController::class],
     [['GET', 'POST'], '/image/{action}[/{token}]', \Skeletor\Image\Controller\ImageController::class],
     [['GET', 'POST'], '/user/{action}[/{id}]', \Solidarity\Backend\Controller\UserController::class],
     [['GET', 'POST'], '/donor/{action}[/{id}]', \Solidarity\Backend\Controller\DonorController::class],
     [['GET', 'POST'], '/delegate/{action}[/{id}]', \Solidarity\Backend\Controller\DelegateController::class],
+    [['GET', 'POST'], '/period/{action}[/{id}]', \Solidarity\Backend\Controller\PeriodController::class],
     [['GET', 'POST'], '/educator/{action}[/{id}]', \Solidarity\Backend\Controller\EducatorController::class],
+    [['GET', 'POST'], '/beneficiary/{action}[/{id}]', \Solidarity\Backend\Controller\BeneficiaryController::class],
     [['GET', 'POST'], '/educatorImport/{action}[/{id}]', \Solidarity\Backend\Controller\EducatorImportController::class],
     [['GET', 'POST'], '/transactionImport/{action}[/{id}]', \Solidarity\Backend\Controller\TransactionImportController::class],
     [['GET', 'POST'], '/transaction/{action}[/{id}]', \Solidarity\Backend\Controller\TransactionController::class],

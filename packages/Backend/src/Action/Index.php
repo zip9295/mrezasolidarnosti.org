@@ -49,9 +49,15 @@ class Index extends Html
         \Psr\Http\Message\ServerRequestInterface $request,
         \Psr\Http\Message\ResponseInterface $response
     ) {
-        $url = $this->getConfig()->offsetGet('adminUrl') . '/login/loginForm/';
+        $url = $this->getConfig()->offsetGet('adminUrl') . '/login/delegate/magicLinkForm/';
+        $url = $this->getConfig()->offsetGet('adminUrl') . '/login/user/magicLinkForm/';
+
         if ($this->session->getStorage()->offsetGet('loggedIn')) {
-            $url = $this->getConfig()->offsetGet('adminUrl') . '/educator/view/';
+            if ($this->session->getStorage()->offsetGet('loggedInEntityType') === 'user') {
+                $url = $this->getConfig()->offsetGet('adminUrl') . '/user/view/';
+            } else {
+                $url = $this->getConfig()->offsetGet('adminUrl') . '/educator/view/';
+            }
         }
 
         return $response->withStatus(302)->withHeader('Location', $url);

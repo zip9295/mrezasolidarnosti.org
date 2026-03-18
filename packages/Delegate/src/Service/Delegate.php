@@ -8,6 +8,10 @@ use Psr\Log\LoggerInterface as Logger;
 use Skeletor\User\Service\Session;
 use Solidarity\Delegate\Filter\Delegate as DelegateFilter;
 use Solidarity\Mailer\Service\Mailer;
+use Solidarity\Beneficiary\Repository\BeneficiaryRepository;
+use Solidarity\School\Repository\SchoolTypeRepository;
+use Solidarity\School\Service\SchoolType;
+use Solidarity\Transaction\Service\Project;
 
 class Delegate extends TableView
 {
@@ -19,7 +23,8 @@ class Delegate extends TableView
      */
     public function __construct(
         DelegateRepository $repo, Session $user, Logger $logger, DelegateFilter $filter, private \DateTime $dt,
-        private Mailer $mailer
+        private Mailer $mailer, private SchoolType $schoolType, private Project $project,
+        private BeneficiaryRepository $beneficiaryRepo
     ) {
         parent::__construct($repo, $user, $logger, $filter);
     }
@@ -31,13 +36,18 @@ class Delegate extends TableView
 
     public function create(array $data)
     {
+        $schoolValue = $data['school'] ?? null;
+        $schoolId = is_array($schoolValue) ? (int) ($schoolValue['id'] ?? 0) : (int) $schoolValue;
+        $schoolId = $schoolId ?: null;
+
         $entity = parent::create($data);
-        if ($entity->status === DelegateEntity::STATUS_VERIFIED) {
-            $this->mailer->sendRoundStartMailToDelegate($entity->email);
-            //@todo add checkbox for sendRoundStartMail
-            $data['id'] = $entity->id;
-            $data['formLinkSent'] = 1;
-            $entity = parent::update($data);
+
+        // Assign orphaned beneficiaries at this school to the new delegate
+        if ($schoolId) {
+            $this->beneficiaryRepo->assignOrphanedBeneficiariesToDelegate(
+                $schoolId,
+                $entity->getId()
+            );
         }
 
         return $entity;
@@ -50,12 +60,53 @@ class Delegate extends TableView
         if ($sendMail) {
             $data['formLinkSent'] = 1;
         }
-        $entity = parent::update($data);
-        if ($sendMail) {
-            $this->mailer->sendRoundStartMailToDelegate($entity->email);
+
+        $delegateId = (int) $data['id'];
+        $schoolValue = $data['school'] ?? null;
+        $newSchoolId = is_array($schoolValue) ? (int) ($schoolValue['id'] ?? 0) : (int) $schoolValue;
+        $newSchoolId = $newSchoolId ?: null;
+
+        // Check if school is changing
+        $oldEntity = $this->repo->getById($delegateId);
+        $oldSchoolId = $oldEntity->school?->getId();
+
+        // If school changed, nullify createdBy on beneficiaries of the old school
+        if ($oldSchoolId && $oldSchoolId !== $newSchoolId) {
+            $this->beneficiaryRepo->nullifyCreatedByForDelegate($delegateId);
         }
 
+        $entity = parent::update($data);
+
+        // Assign orphaned beneficiaries at the new school to this delegate
+        if ($newSchoolId) {
+            $this->beneficiaryRepo->assignOrphanedBeneficiariesToDelegate(
+                $newSchoolId,
+                $delegateId
+            );
+        }
+
+        // @TODO remove debug
+        file_put_contents(__DIR__ . '/delegate_debug.log', sprintf(
+            "delegateId=%d, newSchoolId=%s, oldSchoolId=%s, data[school]=%s\n",
+            $delegateId, var_export($newSchoolId, true), var_export($oldSchoolId, true), $data['school'] ?? 'NULL'
+        ), FILE_APPEND);
+
         return $entity;
+    }
+
+    public function fetchTableData(
+        $search, $filter, $offset, $limit, $order, $uncountableFilter = null, $idsToInclude = [], $idsToExclude = []
+    ) {
+        // delegate can only see own account
+        if ($this->getUserSession()->getLoggedInEntityType() === 'delegate') {
+            $uncountableFilter['id'] = $this->getUserSession()->getLoggedInUserId();
+        }
+        $items = $this->repo->fetchTableData($search, $filter, $offset, $limit, $order, $uncountableFilter, $idsToInclude, $idsToExclude);
+        return [
+            'count' => $items['count'],
+            'entities' => $this->prepareEntities($items['items']),
+            'countColumnData' => $items['countColumnData']
+        ];
     }
 
     public function prepareEntities($entities)
@@ -63,22 +114,24 @@ class Delegate extends TableView
         $items = [];
         /* @var \Solidarity\Delegate\Entity\Delegate $delegate */
         foreach ($entities as $delegate) {
+            $projects = [];
+            foreach ($delegate->projects as $project) {
+                $projects[] = $project->code;
+            }
             $itemData = [
                 'id' => $delegate->getId(),
                 'email' =>  [
                     'value' => $delegate->email,
                     'editColumn' => true,
                 ],
-                'status' => \Solidarity\Delegate\Entity\Delegate::getHrStatus($delegate->status),
-                'schoolType' => $delegate->schoolType,
-                'schoolName' => $delegate->schoolName,
-                'city' => $delegate->city,
+                'name' => $delegate->name .' ('. implode(', ', $projects) . ')',
+                'p.id' => implode(', ', $projects),
+                'school' => $delegate->school?->name,
+                'schoolType' => $delegate->school?->type->name,
                 'phone' => $delegate->phone,
-//                'comment' => $delegate->comment,
-                'count' => $delegate->count,
-                'countBlocking' => $delegate->countBlocking,
-                'createdAt' => $delegate->getCreatedAt()->format('d.m.Y'),
+                'status' => \Solidarity\Delegate\Entity\Delegate::getHrStatus($delegate->status),
 //                'updatedAt' => $delegate->getUpdatedAt()->format('d.m.Y'),
+                'createdAt' => $delegate->getCreatedAt()->format('d.m.Y'),
             ];
             $items[] = [
                 'columns' => $itemData,
@@ -90,22 +143,17 @@ class Delegate extends TableView
 
     public function compileTableColumns()
     {
-        $schoolTypeFilter = [
-            'Osnovna škola' => 'Osnovna škola',
-            'Gimnazija' => 'Gimnazija',
-            'Srednja stručna škola' => 'Srednja stručna škola',
-        ];
         $columnDefinitions = [
             ['name' => 'email', 'label' => 'Email'],
-            ['name' => 'phone', 'label' => 'Phone'],
+            ['name' => 'name', 'label' => 'Ime'],
+            ['name' => 'phone', 'label' => 'Telefon'],
+            ['name' => 'p.id', 'label' => 'project', 'filterData' => $this->project->getFilterData()],
             ['name' => 'status', 'label' => 'Status', 'filterData' => \Solidarity\Delegate\Entity\Delegate::getHrStatuses()],
-            ['name' => 'schoolType', 'label' => 'Type', 'filterData' => $schoolTypeFilter],
-            ['name' => 'schoolName', 'label' => 'School'],
-            ['name' => 'city', 'label' => 'City'],
-            ['name' => 'count', 'label' => 'Count'],
-            ['name' => 'countBlocking', 'label' => 'Blocking'],
+            ['name' => 'schoolType', 'label' => 'Tip škole', 'filterData' => $this->schoolType->getFilterData()],
+            ['name' => 'school', 'label' => 'Škola'],
+//            ['name' => 'city', 'label' => 'City'],
 //            ['name' => 'updatedAt', 'label' => 'Updated at', 'priority' => 8],
-            ['name' => 'createdAt', 'label' => 'Created at', 'priority' => 9],
+            ['name' => 'createdAt', 'label' => 'Kreirano u', 'priority' => 9],
         ];
 
         return $columnDefinitions;

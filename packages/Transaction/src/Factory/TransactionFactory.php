@@ -5,7 +5,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Skeletor\Core\Factory\AbstractFactory;
 use Solidarity\Donor\Entity\Donor;
-use Solidarity\Educator\Entity\Educator;
+use Solidarity\Transaction\Entity\Project;
 use Solidarity\Transaction\Entity\Transaction;
 
 class TransactionFactory extends AbstractFactory
@@ -15,9 +15,15 @@ class TransactionFactory extends AbstractFactory
         $transaction = new Transaction();
         $transaction->amount = $data['amount'];
         $transaction->status = $data['status'];
+        $transaction->donorConfirmed = $data['donorConfirmed'];
         $transaction->donor = $em->getRepository(Donor::class)->find($data['donor']);
-        $transaction->educator = $em->getRepository(Educator::class)->find($data['educator']);
-        $transaction->accountNumber = $transaction->educator->accountNumber;
+        $transaction->project = $em->getRepository(Project::class)->find($data['project']);
+        $transaction->beneficiaryId = $data['beneficiaryId'];
+        $transaction->beneficiaryType = $data['beneficiaryType'];
+
+        $beneficiary = $em->getRepository($transaction->getBeneficiaryClass())->find($data['beneficiaryId']);
+        $transaction->accountNumber = $beneficiary->accountNumber;
+
         $em->persist($transaction);
         $em->flush();
 
@@ -28,14 +34,14 @@ class TransactionFactory extends AbstractFactory
     {
         $transaction = $em->getRepository(Transaction::class)->find($data['id']);
         $transaction->status = $data['status'];
-        //@TODO might be required to change when error occurs, but can still cancel and create new
-        $transaction->accountNumber = $transaction->educator->accountNumber;
-        //@TODO when donor pays different amount
+        $transaction->donorConfirmed = $data['donorConfirmed'];
+
+        // @TODO maybe should not allow updating of acc no
+//        $beneficiary = $em->getRepository($transaction->getBeneficiaryClass())->find($transaction->beneficiaryId);
+//        $transaction->accountNumber = $beneficiary->accountNumber;
+
         $transaction->amount = $data['amount'];
         $transaction->comment = $data['comment'];
-        //@TODO does not need to change, can cancel existing and create new?
-//        $transaction->donor = $em->getRepository(Donor::class)->find($data['donor']);
-//        $transaction->educator = $em->getRepository(Educator::class)->find($data['educator']);
 
         return $transaction->id;
     }

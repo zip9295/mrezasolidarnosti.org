@@ -2,15 +2,17 @@
 
 namespace Solidarity\Delegate\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Skeletor\Core\Entity\Timestampable;
+use Skeletor\Core\Security\Authentication\AuthenticatableInterface;
 use Solidarity\School\Entity\School;
-use Solidarity\User\Entity\User;
+use Solidarity\Transaction\Entity\Project;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'delegate')]
-class Delegate
+class Delegate implements AuthenticatableInterface
 {
     use Timestampable;
 
@@ -18,6 +20,10 @@ class Delegate
     const STATUS_VERIFIED = 2;
     const STATUS_PROBLEM = 3;
 
+    #[ORM\Column(type: Types::STRING, length: 128, unique: true, updatable: false)]
+    public string $email;
+    #[ORM\Column(type: Types::STRING, length: 128)]
+    public string $name;
     #[ORM\Column(type: Types::SMALLINT)]
     public int $status;
     #[ORM\Column(type: Types::STRING, length: 16)]
@@ -28,12 +34,16 @@ class Delegate
     public ?string $adminComment;
     #[ORM\Column(type: Types::STRING, length: 512)]
     public string $verifiedBy;
+    #[ORM\Column(type: Types::INTEGER, nullable: true, options:["unsigned"=>true])]
+    public ?string $ipv4;
+    #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
+    public ?\DateTime $lastLogin;
     #[ORM\ManyToOne(targetEntity: School::class, inversedBy: 'delegates')]
-    #[ORM\JoinColumn(name: 'schoolId', referencedColumnName: 'id', unique: false, nullable: false)]
+    #[ORM\JoinColumn(name: 'schoolId', referencedColumnName: 'id', unique: false, nullable: true)]
     public ?School $school;
-
-    #[ORM\OneToOne(targetEntity: User::class, mappedBy: 'delegate')]
-    public User $user;
+    #[ORM\ManyToMany(targetEntity: Project::class, inversedBy: 'delegates')]
+    #[ORM\JoinTable(name: 'delegate_project')]
+    public Collection $projects;
 
     public static function getHrStatuses(): array
     {
@@ -47,5 +57,58 @@ class Delegate
     public static function getHrStatus($status): string
     {
         return static::getHrStatuses()[$status];
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
+    }
+
+    public function getAuthIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    public function getAuthPassword(): null
+    {
+        return null;
+    }
+
+    public function getAuthRole(): int
+    {
+        // Delegates have a fixed role @TODO
+        return 10;
+    }
+
+    public function getRedirectPath(): string
+    {
+        return '/beneficiary/view/';
+    }
+
+    public function isActive(): bool
+    {
+        return (bool) $this->status;
+    }
+
+    public function supportsAuthenticator(string $authenticatorType): bool
+    {
+        // Delegates support password and magic link authentication
+        return in_array($authenticatorType, ['password', 'magic_link']);
+    }
+
+    public function getEmail(): string
+    {
+        return $this->email;
+    }
+
+    public function getDisplayName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function updateLoginInfo($ipv4, $lastLogin): void
+    {
+        $this->ipv4 = $ipv4;
+        $this->lastLogin = $lastLogin;
     }
 }

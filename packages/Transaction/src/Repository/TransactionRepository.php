@@ -2,7 +2,7 @@
 namespace Solidarity\Transaction\Repository;
 
 use Doctrine\ORM\EntityManagerInterface;
-use Solidarity\Educator\Entity\Educator;
+use Solidarity\Beneficiary\Entity\Beneficiary;
 use Solidarity\Transaction\Entity\Transaction;
 use Solidarity\Transaction\Factory\TransactionFactory;
 use Skeletor\Core\TableView\Repository\TableViewRepository;
@@ -11,6 +11,10 @@ class TransactionRepository extends TableViewRepository
 {
     const ENTITY = Transaction::class;
     const FACTORY = TransactionFactory::class;
+
+    // tmp solution
+    const PROJECT_MSP = 1;
+    const PROJECT_MSPR = 2;
 
     public function __construct(
         protected EntityManagerInterface $entityManager
@@ -23,22 +27,18 @@ class TransactionRepository extends TableViewRepository
         $qb = $this->entityManager->createQueryBuilder();
         $qb->select('t')
             ->from(static::ENTITY, 't')
-            ->join(Educator::class, 'e', 'WITH', 't.educator = e')
-            ->where('e.school = :school');
+            ->join(Beneficiary::class, 'b', 'WITH', 't.beneficiary = b')
+            ->where('b.school = :school')
+            ->andWhere('t.project = :project');
         $qb->setParameter('school', $schoolId);
+        $qb->setParameter('project', static::PROJECT_MSP);
 
         return $qb->getQuery()->getResult();
     }
 
-    public function startNewRound()
-    {
-        $stmt = $this->entityManager->getConnection()->prepare("UPDATE `transaction` SET archived = 1 WHERE archived = 0");
-
-        return $stmt->executeQuery();
-    }
-
     /**
-     * Returns if overall limit donated per educator is achieved.
+     * Returns if overall limit donated per person is achieved.
+     * Takes all projects into account.
      *
      * @param $donorEmail
      * @param $receiverName
@@ -55,6 +55,35 @@ class TransactionRepository extends TableViewRepository
         $qb->setParameter('name', $receiverName);
 
         return $qb->getQuery()->getSingleScalarResult() > Transaction::PER_PERSON_LIMIT;
+    }
+
+    /**
+     * Resolves and assigns the beneficiary entity for each transaction.
+     *
+     * @param Transaction[] $transactions
+     */
+    public function resolveBeneficiaries(array $transactions): void
+    {
+        // Group beneficiary IDs by type for batch loading
+        $grouped = [];
+        foreach ($transactions as $transaction) {
+            $grouped[$transaction->beneficiaryType][] = $transaction->beneficiaryId;
+        }
+
+        // Batch load each type
+        $loaded = [];
+        foreach ($grouped as $type => $ids) {
+            $class = Beneficiary::class;
+            $entities = $this->entityManager->getRepository($class)->findBy(['id' => array_unique($ids)]);
+            foreach ($entities as $entity) {
+                $loaded[$type][$entity->getId()] = $entity;
+            }
+        }
+
+        // Assign to each transaction
+        foreach ($transactions as $transaction) {
+            $transaction->beneficiary = $loaded[$transaction->beneficiaryType][$transaction->beneficiaryId] ?? null;
+        }
     }
 
     public function getSearchableColumns(): array

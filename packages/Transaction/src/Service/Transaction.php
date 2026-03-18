@@ -16,7 +16,7 @@ class Transaction extends TableView
      * @param Logger $logger
      */
     public function __construct(
-        TransactionRepository $repo, Session $user, Logger $logger, TransactionFilter $filter, private \DateTime $dt
+        TransactionRepository $repo, Session $user, Logger $logger, TransactionFilter $filter, private Project $project,
     ) {
         parent::__construct($repo, $user, $logger, $filter);
     }
@@ -26,11 +26,6 @@ class Transaction extends TableView
         return $this->repo->getTransactionsBySchool($schoolId);
     }
 
-    public function startNewRound()
-    {
-        return $this->repo->startNewRound();
-    }
-
     public function perPersonLimit($donorEmail, $receiverName)
     {
         return $this->repo->perPersonLimit($donorEmail, $receiverName);
@@ -38,9 +33,17 @@ class Transaction extends TableView
 
     public function prepareEntities($entities)
     {
+        $this->repo->resolveBeneficiaries($entities);
+
         $items = [];
         /* @var \Solidarity\Transaction\Entity\Transaction $transaction */
         foreach ($entities as $transaction) {
+            $beneficiaryName = $transaction->beneficiary->name ?? 'N/A';
+            if ($transaction->beneficiary->school) {
+                $beneficiaryName .= '<br />' . $transaction->beneficiary->school->name
+                    . '<br />' . $transaction->beneficiary->school->city->name;
+            }
+
             $itemData = [
                 'id' => $transaction->getId(),
                 'accountNumber' =>  [
@@ -50,7 +53,8 @@ class Transaction extends TableView
                 'status' => \Solidarity\Transaction\Entity\Transaction::getHrStatuses()[$transaction->status],
                 'amount' => $transaction->amount,
                 'email' => $transaction->donor->firstName .' '. $transaction->donor->lastName .'<br />'. $transaction->donor->email,
-                'name' => $transaction->educator->name .'<br />'. $transaction->educator->school->name .'<br />'. $transaction->educator->school->city->name,
+                'name' => $beneficiaryName,
+                'project' => $transaction->project->code,
                 'createdAt' => $transaction->getCreatedAt()->format('d.m.Y'),
 //                'updatedAt' => $transaction->getUpdatedAt()->format('d.m.Y'),
             ];
@@ -67,12 +71,12 @@ class Transaction extends TableView
         // @TODO add filter per school, search per donor/educator details
         $columnDefinitions = [
             ['name' => 'email', 'label' => 'Email'],
-            ['name' => 'name', 'label' => 'Name'],
-            ['name' => 'accountNumber', 'label' => 'Acc Number'],
-            ['name' => 'amount', 'label' => 'Amount'],
+            ['name' => 'name', 'label' => 'Ime'],
+            ['name' => 'accountNumber', 'label' => 'Br računa'],
+            ['name' => 'amount', 'label' => 'Iznos'],
             ['name' => 'status', 'label' => 'Status', 'filterData' => \Solidarity\Transaction\Entity\Transaction::getHrStatuses()],
-//            ['name' => 'updatedAt', 'label' => 'Updated at', 'priority' => 8],
-            ['name' => 'createdAt', 'label' => 'Created at', 'priority' => 9],
+            ['name' => 'project', 'label' => 'Projekat', 'filterData' => $this->project->getFilterData()],
+            ['name' => 'createdAt', 'label' => 'Datum'],
         ];
 
         return $columnDefinitions;

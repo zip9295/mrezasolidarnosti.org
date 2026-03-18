@@ -5,8 +5,8 @@ namespace Solidarity\Transaction\Entity;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Skeletor\Core\Entity\Timestampable;
+use Solidarity\Beneficiary\Entity\Beneficiary;
 use Solidarity\Donor\Entity\Donor;
-use Solidarity\Educator\Entity\Educator;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'transaction')]
@@ -21,30 +21,38 @@ class Transaction
 
     const PER_PERSON_LIMIT = 30000;
 
-//    #[ORM\Column(type: Types::STRING, length: 128)]
-//    public string $name;
-    #[ORM\Column(type: Types::STRING, length: 32)]
-    public string $accountNumber;
-//    #[ORM\Column(type: Types::STRING, length: 64)]
-//    public string $email;
+    const BENEFICIARY_TYPE_EDUCATOR = 1;
+    const BENEFICIARY_TYPE_BENEFICIARY = 2;
+
+    // @todo one of these two must be entered; accNumber can contain phone number when using WU
+    #[ORM\Column(type: Types::STRING, length: 32, nullable: true)]
+    public ?string $accountNumber;
+    // should contain textual instruction if required
+    #[ORM\Column(type: Types::STRING, length: 512, nullable: true)]
+    public ?string $instructions;
     #[ORM\Column(type: Types::INTEGER)]
     public int $amount;
     #[ORM\Column(type: Types::INTEGER)]
     public int $status;
+    #[ORM\Column(type: Types::BOOLEAN)]
+    public bool $donorConfirmed;
     #[ORM\Column(type: Types::STRING, length: 1024, nullable: true)]
     public ?string $comment;
+    // payment code provided by the payment institution, entered by the donor when confirming payment
+    #[ORM\Column(type: Types::STRING, length: 256, nullable: true)]
+    public ?string $paymentCode;
 
-//    #[ORM\ManyToOne(targetEntity: Round::class, inversedBy: 'transaction')]
-//    #[ORM\JoinColumn(name: 'roundId', referencedColumnName: 'id', unique: false)]
-//    public Round $round;
+    #[ORM\ManyToOne(inversedBy: 'transactions')]
+    #[ORM\JoinColumn(name: 'projectId', referencedColumnName: 'id', unique: false, nullable: false)]
+    public Project $project;
 
-    #[ORM\ManyToOne(targetEntity: Educator::class, inversedBy: 'educator')]
-    #[ORM\JoinColumn(name: 'educatorId', referencedColumnName: 'id', unique: false)]
-    public Educator $educator;
-
-    #[ORM\ManyToOne(targetEntity: Donor::class, inversedBy: 'donor')]
+    #[ORM\ManyToOne(targetEntity: Donor::class, inversedBy: 'transactions')]
     #[ORM\JoinColumn(name: 'donorId', referencedColumnName: 'id', unique: false)]
     public Donor $donor;
+
+    #[ORM\ManyToOne(targetEntity: Beneficiary::class, inversedBy: 'transactions')]
+    #[ORM\JoinColumn(name: 'beneficiaryId', referencedColumnName: 'id', unique: false)]
+    public Beneficiary $beneficiary;
 
     public static function getHrStatuses(): array
     {

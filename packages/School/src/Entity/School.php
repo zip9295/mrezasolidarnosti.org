@@ -2,7 +2,7 @@
 
 namespace Solidarity\School\Entity;
 
-use Solidarity\Educator\Entity\Educator;
+use Solidarity\Beneficiary\Entity\Beneficiary;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
@@ -28,8 +28,8 @@ class School
     #[ORM\Column]
     private ?bool $processing = true;
 
-    #[ORM\OneToMany(targetEntity: Educator::class, mappedBy: 'school')]
-    private Collection $damagedEducators;
+    #[ORM\OneToMany(targetEntity: Beneficiary::class, mappedBy: 'school')]
+    private Collection $beneficiaries;
 
     #[ORM\Column(name:'have_payout_priority')]
     private bool $havePayoutPriority = false;

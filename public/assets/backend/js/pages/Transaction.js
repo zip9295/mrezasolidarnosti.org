@@ -26,4 +26,18 @@ export default class Educator extends CrudPage {
         }
         return action;
     }
+
+    tdStyler = (td, columnName, columnValue, entity) => {
+        if (columnName === 'project') {
+            switch (columnValue) {
+                case 'MSP':
+                    this.makeTDValueToBadge(td, columnValue, CrudPage.BADGE_TYPES.BLUE);
+                    break;
+                case 'MSPR':
+                    this.makeTDValueToBadge(td, columnValue, CrudPage.BADGE_TYPES.GREEN);
+                    break;
+            }
+        }
+        return td;
+    }
 }
