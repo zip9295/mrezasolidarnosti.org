@@ -6,7 +6,7 @@ use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Skeletor\Core\Entity\Timestampable;
 use Solidarity\Donor\Entity\Donor;
-use Solidarity\Educator\Entity\EducatorImport;
+use Solidarity\Beneficiary\Entity\Beneficiary;
 
 //#[ORM\Entity]
 //#[ORM\Table(name: 'transactionImport')]
@@ -38,9 +38,9 @@ class TransactionImport
     #[ORM\JoinColumn(name: 'roundId', referencedColumnName: 'id', unique: false)]
     public Round $round;
 
-    #[ORM\ManyToOne(targetEntity: EducatorImport::class, inversedBy: 'educator')]
-    #[ORM\JoinColumn(name: 'educatorId', referencedColumnName: 'id', unique: false)]
-    public EducatorImport $educator;
+    #[ORM\ManyToOne(targetEntity: Beneficiary::class, inversedBy: 'transactions')]
+    #[ORM\JoinColumn(name: 'beneficiaryId', referencedColumnName: 'id', unique: false)]
+    public Beneficiary $beneficiary;
 
     #[ORM\ManyToOne(targetEntity: Donor::class, inversedBy: 'donor')]
     #[ORM\JoinColumn(name: 'donorId', referencedColumnName: 'id', unique: false)]

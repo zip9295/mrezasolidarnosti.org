@@ -6,6 +6,7 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Skeletor\Core\Entity\Timestampable;
+use Solidarity\Transaction\Entity\Project;
 use Solidarity\Transaction\Entity\Transaction;
 
 #[ORM\Entity]
@@ -22,8 +23,6 @@ class Donor
     const DONATE_TO_SCHOOL = 2;
     const DONATE_TO_UNI = 3;
 
-    #[ORM\Column(type: Types::INTEGER)]
-    public int $amount;
     #[ORM\Column(type: Types::STRING, length: 255, unique: true)]
     public string $email;
     #[ORM\Column(type: Types::STRING, length: 128)]
@@ -34,8 +33,6 @@ class Donor
     public int $status;
     #[ORM\Column(type: Types::SMALLINT)]
     public int $wantsToDonateTo;
-    #[ORM\Column(type: Types::SMALLINT)]
-    public int $monthly;
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     public ?string $comment;
     #[ORM\Column(type: Types::INTEGER)]
@@ -45,8 +42,13 @@ class Donor
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     public ?\DateTime $lastLogin;
 
-    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'transactions')]
+    #[ORM\OneToMany(targetEntity: PaymentMethod::class, mappedBy: 'donor')]
+    public Collection $paymentMethods;
+    #[ORM\OneToMany(targetEntity: Transaction::class, mappedBy: 'donor')]
     public Collection $transactions;
+    #[ORM\ManyToMany(targetEntity: Project::class, inversedBy: 'donors')]
+    #[ORM\JoinTable(name: 'donor_project')]
+    public Collection $projects;
 
     public static function getHrStatuses(): array
     {

@@ -5,9 +5,8 @@ use GuzzleHttp\Psr7\UploadedFile;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Solidarity\Delegate\Service\Delegate;
 use Solidarity\Donor\Service\Donor;
-use Solidarity\Educator\Service\Educator;
 use Solidarity\Mailer\Service\Mailer;
-use Solidarity\Transaction\Service\Round;
+use Solidarity\Transaction\Service\Project;
 use Solidarity\Transaction\Service\Transaction;
 use Skeletor\Core\Controller\AjaxCrudController;
 use GuzzleHttp\Psr7\Response;
@@ -39,8 +38,7 @@ class TransactionController extends AjaxCrudController
      */
     public function __construct(
         Transaction    $service, Session $session, Config $config, Flash $flash, Engine $template,
-        private Donor  $donor, private Educator $educator, private Transaction $transaction, private Round $round,
-        private Mailer $mailer, private \Solidarity\Educator\Filter\Educator $educatorFilter, private Delegate $delegate
+        private Donor  $donor, private Project $project, private Mailer $mailer, private Delegate $delegate
     ) {
         parent::__construct($service, $session, $config, $flash, $template);
 //        $this->tableViewConfig['createButton'] = false;
@@ -124,6 +122,7 @@ class TransactionController extends AjaxCrudController
 
     public function form(): Response
     {
+        $this->formData['projects'] = $this->project->getFilterData();
         return parent::form();
     }
 

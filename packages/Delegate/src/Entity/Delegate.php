@@ -2,13 +2,13 @@
 
 namespace Solidarity\Delegate\Entity;
 
+use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-use Skeletor\Core\Entity\Loginable;
 use Skeletor\Core\Entity\Timestampable;
 use Skeletor\Core\Security\Authentication\AuthenticatableInterface;
 use Solidarity\School\Entity\School;
-use Solidarity\User\Entity\User;
+use Solidarity\Transaction\Entity\Project;
 
 #[ORM\Entity]
 #[ORM\Table(name: 'delegate')]
@@ -20,8 +20,6 @@ class Delegate implements AuthenticatableInterface
     const STATUS_VERIFIED = 2;
     const STATUS_PROBLEM = 3;
 
-//    #[ORM\Column(type: Types::STRING, length: 128, nullable: true)]
-//    public ?string $password;
     #[ORM\Column(type: Types::STRING, length: 128, unique: true, updatable: false)]
     public string $email;
     #[ORM\Column(type: Types::STRING, length: 128)]
@@ -41,8 +39,11 @@ class Delegate implements AuthenticatableInterface
     #[ORM\Column(type: Types::DATETIME_MUTABLE, nullable: true)]
     public ?\DateTime $lastLogin;
     #[ORM\ManyToOne(targetEntity: School::class, inversedBy: 'delegates')]
-    #[ORM\JoinColumn(name: 'schoolId', referencedColumnName: 'id', unique: false, nullable: false)]
+    #[ORM\JoinColumn(name: 'schoolId', referencedColumnName: 'id', unique: false, nullable: true)]
     public ?School $school;
+    #[ORM\ManyToMany(targetEntity: Project::class, inversedBy: 'delegates')]
+    #[ORM\JoinTable(name: 'delegate_project')]
+    public Collection $projects;
 
     public static function getHrStatuses(): array
     {
@@ -81,7 +82,7 @@ class Delegate implements AuthenticatableInterface
 
     public function getRedirectPath(): string
     {
-        return '/educator/view/';
+        return '/beneficiary/view/';
     }
 
     public function isActive(): bool

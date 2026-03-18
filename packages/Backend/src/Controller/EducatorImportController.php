@@ -10,7 +10,7 @@ use Laminas\Session\SessionManager as Session;
 use League\Plates\Engine;
 use Solidarity\Educator\Service\EducatorImport;
 use Solidarity\School\Service\School;
-use Solidarity\Transaction\Service\Round;
+use Solidarity\Transaction\Service\Project;
 use Tamtamchik\SimpleFlash\Flash;
 use Turanjanin\SerbianTransliterator\Transliterator;
 
@@ -33,7 +33,7 @@ class EducatorImportController extends AjaxCrudController
      */
     public function __construct(
         EducatorImport $service, Session $session, Config $config, Flash $flash, Engine $template, private School $school,
-        private \Redis $redis, private Round $round
+        private \Redis $redis, private Project $round
     ) {
         parent::__construct($service, $session, $config, $flash, $template);
         $this->tableViewConfig['createButton'] = false;

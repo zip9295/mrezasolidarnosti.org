@@ -27,6 +27,14 @@ class DelegateRepository extends TableViewRepository implements LoginRepositoryI
         parent::__construct($entityManager);
     }
 
+    public function getJoinableEntities(): array
+    {
+        return [
+            'projects' => 'p',
+            'school'   => 's',
+        ];
+    }
+
     public function getAffectedDelegates()
     {
         $sql = "SELECT * FROM delegate d where 

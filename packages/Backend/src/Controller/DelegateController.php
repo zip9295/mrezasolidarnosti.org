@@ -1,7 +1,6 @@
 <?php
 namespace Solidarity\Backend\Controller;
 
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use Skeletor\User\Entity\User;
 use Solidarity\Delegate\Service\Delegate;
 use Skeletor\Core\Controller\AjaxCrudController;
@@ -11,6 +10,7 @@ use Laminas\Session\SessionManager as Session;
 use League\Plates\Engine;
 use Solidarity\Mailer\Service\Mailer;
 use Solidarity\School\Service\School;
+use Solidarity\Transaction\Service\Project;
 use Tamtamchik\SimpleFlash\Flash;
 
 class DelegateController extends AjaxCrudController
@@ -32,7 +32,7 @@ class DelegateController extends AjaxCrudController
      */
     public function __construct(
         Delegate       $service, Session $session, Config $config, Flash $flash, Engine $template, private Mailer $mailer,
-        private School $school
+        private School $school, private Project $project
     ) {
         parent::__construct($service, $session, $config, $flash, $template);
         if ($this->getSession()->getStorage()->offsetGet('loggedInRole') !== User::ROLE_ADMIN) {
@@ -43,7 +43,7 @@ class DelegateController extends AjaxCrudController
 
     public function form(): Response
     {
-
+        $this->formData['projects'] = $this->project->getFilterData();
         return parent::form();
     }
 

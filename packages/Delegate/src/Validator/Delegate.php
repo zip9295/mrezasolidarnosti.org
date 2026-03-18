@@ -50,21 +50,17 @@ class Delegate implements ValidatorInterface
             $valid = false;
         }
 
-        if (!isset($data['id'])) {
-            // @TODO check if school is taken
-//            $existingDelegates = $this->delegateRepository->fetchAll([
-//                'schoolName' => $data['schoolName'],
-//                'schoolType' => $data['schoolType'],
-//                'city' => $data['city'],
-//            ]);
-//            if (count($existingDelegates) > 0) {
-//                if ($existingDelegates[0]->email !== $data['email']) {
-//                    $this->messages['email'][] = 'Mesto delegata za vašu školu je zauzeto.';
-//                } else {
-//                    $this->messages['email'][] = 'Već ste prijavljeni na mrežu solidarnosti.';
-//                }
-//                $valid = false;
-//            }
+        if (!empty($data['school'])) {
+            $criteria = ['school' => $data['school']];
+            $existingDelegates = $this->delegateRepository->fetchAll($criteria);
+            foreach ($existingDelegates as $existing) {
+                if (isset($data['id']) && $existing->getId() === (int) $data['id']) {
+                    continue;
+                }
+                $this->messages['school'][] = 'Mesto delegata za ovu školu je već zauzeto.';
+                $valid = false;
+                break;
+            }
         }
 
         if (!$this->csrf->validate($data)) {

@@ -21,6 +21,8 @@ class Delegate implements FilterInterface
 
     public function filter($postData): array
     {
+        // todo if delegate is MSP it needs school relation
+
         $int = new ToInt();
         $data = [
             'id' => (isset($postData['id'])) ? $int->filter($postData['id']) : null,
@@ -31,6 +33,7 @@ class Delegate implements FilterInterface
                 ? Transliterator::toLatin($postData['verifiedBy'])
                 : '',
             'school' => $postData['school'],
+            'projects' => $postData['projects'],
             'comment' => Transliterator::toLatin($postData['comment'] ?? ''),
             'adminComment' => Transliterator::toLatin($postData['adminComment'] ?? ''),
             'status' => (isset($postData['status'])) ? $postData['status'] : 1,

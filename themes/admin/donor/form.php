@@ -16,38 +16,45 @@ use Skeletor\Form\TabbedForm;
 
 $form = new TabbedForm($data['formAction'], $data['dataAction'], $this->formTokenArray());
 
-$action = $data['dataAction'] === 'create' ? 'Create' : 'Edit';
+$action = $data['dataAction'] === 'create' ? 'Kreiraj' : 'Izmeni';
 
 $statuses = \Solidarity\Donor\Entity\Donor::getHrStatuses();
 $statusCollection = (new OptionCollection(new Option('1', 'New')))->fromArray($statuses, $data['model']?->status);
 $statusSelect = (new Select('status', $statusCollection, 'Status'))
-    ->required('Status is required', '');
+    ->required('Status je neophodan', '');
 $email = (new Email('email', $data['model']?->email, 'Email'));
 //    ->emailInvalidMessage('Email is invalid');
-$firstName = (new Text('firstName', $data['model']?->firstName, 'First Name'))
-    ->required('First Name is required')
-    ->minLength(2, 'First Name must be at least 2 characters');
-$lastName = (new Text('lastName', $data['model']?->lastName, 'Last Name'))
-    ->required('Last Name is required')
-    ->minLength(2, 'Last Name must be at least 2 characters');
+$firstName = (new Text('firstName', $data['model']?->firstName, 'Ime'))
+    ->required('Ime je neophodno')
+    ->minLength(2, 'Ime mora da sadrži bar 2 karaktera');
+$lastName = (new Text('lastName', $data['model']?->lastName, 'Prezime'))
+    ->required('Prezime je neophodno')
+    ->minLength(2, 'Prezime mora da sadrži bar 2 karaktera');
 $comment = (new \Skeletor\Form\InputTypes\TextArea\TextArea('comment', $data['model']?->comment, 'Comment'));
 $amount = (new \Skeletor\Form\InputTypes\Input\Number('amount', $data['model']?->amount, 'Amount'))
-    ->required('amount is required');
-$monthly = [1 => 'Yes', 0 => 'No'];
-$monthlyCollection = (new OptionCollection(new Option('1', 'Yes')))->fromArray($monthly, $data['model']?->monthly);
-$monthlySelect = (new Select('monthly', $monthlyCollection, 'Monthly'))
-    ->required('Monthly is required', '');
+    ->required('Iznos je neophodan');
+$monthly = [1 => 'Da', 0 => 'Ne'];
+$monthlyCollection = (new OptionCollection(new Option('1', 'Da')))->fromArray($monthly, $data['model']?->monthly);
+$monthlySelect = (new Select('monthly', $monthlyCollection, 'Mesečno'))
+    ->required('Izbor za mesečne donacije je neophodan', '');
 $donationOptionsCollection = (new OptionCollection(new Option('1', 'Svima')))->fromArray(\Solidarity\Donor\Entity\Donor::getHrDonationOptions(), $data['model']?->wantsToDonateTo);
-$donationOptionsSelect = (new Select('wantsToDonateTo', $donationOptionsCollection, 'Wants To Donate To'));
-$isActive = [1 => 'Yes', 0 => 'No'];
-$isActiveCollection = (new OptionCollection(new Option('1', 'Yes')))->fromArray($isActive, $data['model']?->isActive);
-$isActiveSelect = (new Select('isActive', $monthlyCollection, 'Active'));
+$donationOptionsSelect = (new Select('wantsToDonateTo', $donationOptionsCollection, 'Bira da donira za'));
+$isActive = [1 => 'Da', 0 => 'Ne'];
+$isActiveCollection = (new OptionCollection(new Option('1', 'Da')))->fromArray($isActive, $data['model']?->isActive);
+$isActiveSelect = (new Select('isActive', $monthlyCollection, 'Aktivno'));
+$projects = [];
+foreach ($data['model']?->projects as $project) {
+    $projects[] = $project->id;
+}
+$projectCollection = (new OptionCollection())->fromArray($data['projects'], $projects);
+$projectSelect = (new \Skeletor\Form\InputTypes\Select\MultipleSelect('projects[]', $projectCollection, 'Project'))
+    ->required('Projekat je neophodan');
 
 $inputGroup1 = (new InputGroup())
     ->addInput($email)
     ->addInput($comment);
 
-$form->addTab((new Tab('Basic Info'))
+$form->addTab((new Tab('Osnovne Info'))
     ->addInputGroup($inputGroup1)
     ->addInputGroup((new InputGroup())
         ->addInput($firstName)
@@ -58,7 +65,8 @@ $form->addTab((new Tab('Basic Info'))
         ->addInput($monthlySelect))
     ->addInputGroup((new InputGroup())
         ->addInput($statusSelect)
-        ->addInput($donationOptionsSelect))
+        ->addInput($donationOptionsSelect)
+        ->addInput($projectSelect))
 );
 
 $formRenderer = new TabbedFormRenderer($form, $data['formTitle']);

@@ -273,8 +273,9 @@ $container->set(EntityManagerInterface::class, function() use ($container) {
         paths: [
             APP_PATH . "/packages/Delegate/src/Entity",
             APP_PATH . "/packages/Donor/src/Entity",
-            APP_PATH . "/packages/Educator/src/Entity",
             APP_PATH . "/packages/Transaction/src/Entity",
+            APP_PATH . "/packages/Period/src/Entity",
+            APP_PATH . "/packages/Beneficiary/src/Entity",
             APP_PATH . "/packages/School/src/Entity",
             APP_PATH . "/packages/User/src/Entity",
             APP_PATH . "/vendor/dj_avolak/skeletor/src/Image",

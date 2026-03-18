@@ -8,6 +8,7 @@ use GuzzleHttp\Psr7\Response;
 use Laminas\Config\Config;
 use Laminas\Session\SessionManager as Session;
 use League\Plates\Engine;
+use Solidarity\Transaction\Service\Project;
 use Tamtamchik\SimpleFlash\Flash;
 use Turanjanin\SerbianTransliterator\Transliterator;
 
@@ -29,7 +30,7 @@ class DonorController extends AjaxCrudController
      * @param Engine $template
      */
     public function __construct(
-        Donor $service, Session $session, Config $config, Flash $flash, Engine $template
+        Donor $service, Session $session, Config $config, Flash $flash, Engine $template, private Project $project
     ) {
         parent::__construct($service, $session, $config, $flash, $template);
 //        $this->tableViewConfig['createButton'] = false;
@@ -37,7 +38,7 @@ class DonorController extends AjaxCrudController
 
     public function form(): Response
     {
-
+        $this->formData['projects'] = $this->project->getFilterData();
         return parent::form();
     }
 

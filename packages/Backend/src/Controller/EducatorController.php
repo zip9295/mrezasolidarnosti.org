@@ -2,7 +2,7 @@
 namespace Solidarity\Backend\Controller;
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use Solidarity\Educator\Service\Period;
+use Solidarity\Period\Service\Period;
 use Solidarity\Educator\Service\Educator;
 use Skeletor\Core\Controller\AjaxCrudController;
 use GuzzleHttp\Psr7\Response;
@@ -10,17 +10,17 @@ use Laminas\Config\Config;
 use Laminas\Session\SessionManager as Session;
 use League\Plates\Engine;
 use Solidarity\School\Service\School;
-use Solidarity\Transaction\Service\Round;
+use Solidarity\Transaction\Service\Project;
 use Tamtamchik\SimpleFlash\Flash;
 
 class EducatorController extends AjaxCrudController
 {
-    const TITLE_VIEW = "View educators";
-    const TITLE_CREATE = "Create new educator";
-    const TITLE_UPDATE = "Edit educator: ";
-    const TITLE_UPDATE_SUCCESS = "Educator updated successfully.";
-    const TITLE_CREATE_SUCCESS = "Educator created successfully.";
-    const TITLE_DELETE_SUCCESS = "Educator deleted successfully.";
+    const TITLE_VIEW = "Pregledaj ostecene (MSP)";
+    const TITLE_CREATE = "Unesi ostecenu osobu (MSP)";
+    const TITLE_UPDATE = "Izmeni ostecenu osobu: (MSP)";
+    const TITLE_UPDATE_SUCCESS = "Osteceni izmenjen uspesno. (MSP)";
+    const TITLE_CREATE_SUCCESS = "Osteceni kreiran uspesno. (MSP)";
+    const TITLE_DELETE_SUCCESS = "Osteceni obrisan uspesno. (MSP)";
     const PATH = 'Educator';
 
     /**
@@ -71,16 +71,16 @@ class EducatorController extends AjaxCrudController
             switch ($educatorData[8]) {
                 case 'Nije verifikovano':
                 case 'Novo':
-                    $status = \Solidarity\Educator\Entity\Educator::STATUS_NEW;
+                    $status = \Solidarity\Beneficiary\Entity\Beneficiary::STATUS_NEW;
                     break;
                 case 'Poslato':
-                    $status = \Solidarity\Educator\Entity\Educator::STATUS_SENT;
+                    $status = \Solidarity\Beneficiary\Entity\Beneficiary::STATUS_SENT;
                     break;
                 case 'Primljeno':
-                    $status = \Solidarity\Educator\Entity\Educator::STATUS_RECEIVED;
+                    $status = \Solidarity\Beneficiary\Entity\Beneficiary::STATUS_RECEIVED;
                     break;
                 case 'Za slanje':
-                    $status = \Solidarity\Educator\Entity\Educator::STATUS_FOR_SENDING;
+                    $status = \Solidarity\Beneficiary\Entity\Beneficiary::STATUS_FOR_SENDING;
                     break;
                 case 'AFK duplikat':
                 case 'Duplikat':

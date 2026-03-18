@@ -27,6 +27,14 @@ $name = (new Text('name', $data['model']?->name, 'Name'));
 $verifiedBy = (new Text('verifiedBy', $data['model']?->verifiedBy, 'Verified By'));
 $comment = (new \Skeletor\Form\InputTypes\TextArea\TextArea('comment', $data['model']?->comment, 'Comment'));
 $adminComment = (new \Skeletor\Form\InputTypes\TextArea\TextArea('adminComment', $data['model']?->adminComment, 'Admin comment'));
+$projects = [];
+foreach ($data['model']?->projects as $project) {
+    $projects[] = $project->id;
+}
+$projectCollection = (new OptionCollection())->fromArray($data['projects'], $projects);
+$projectSelect = (new \Skeletor\Form\InputTypes\Select\MultipleSelect('projects[]', $projectCollection, 'Project'))
+    ->required('Project is required');
+
 $schoolSelect = (new \Skeletor\Form\InputTypes\AjaxInputSearch\AjaxInputSearch(
     'school[id]',
     '/school/tableHandler/',
@@ -39,12 +47,10 @@ $schoolSelect = (new \Skeletor\Form\InputTypes\AjaxInputSearch\AjaxInputSearch(
 ));
 
 $basicInfoTab = (new Tab('Basic Info'))
-    ->addInputGroup((new InputGroup())->addInput($name))
-    ->addInputGroup((new InputGroup())->addInput($email))
-    ->addInputGroup((new InputGroup())->addInput($delegateStatusesSelect))
-    ->addInputGroup((new InputGroup())->addInput($phone))
-    ->addInputGroup((new InputGroup())->addInput($schoolSelect))
-    ->addInputGroup((new InputGroup())->addInput($verifiedBy))
+    ->addInputGroup((new InputGroup())->addInput($name)->addInput($schoolSelect))
+    ->addInputGroup((new InputGroup())->addInput($email)->addInput($phone))
+    ->addInputGroup((new InputGroup())->addInput($delegateStatusesSelect)->addInput($verifiedBy))
+    ->addInputGroup((new InputGroup())->addInput($projectSelect))
     ->addInputGroup((new InputGroup(width: InputGroupWidth::HALF_WIDTH))->addInput($comment))
     ->addInputGroup((new InputGroup(width: InputGroupWidth::HALF_WIDTH))->addInput($adminComment));
 

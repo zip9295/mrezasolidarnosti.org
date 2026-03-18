@@ -49,15 +49,20 @@ class Donor extends TableView
         $items = [];
         /* @var \Solidarity\Donor\Entity\Donor $donor */
         foreach ($entities as $donor) {
+            $projects = [];
+            foreach ($donor->projects as $project) {
+                $projects[] = $project->code;
+            }
             $itemData = [
                 'id' => $donor->getId(),
                 'email' =>  [
-                    'value' => $donor->email,
+                    'value' => $donor->email .' ('. implode(', ', $projects) . ')',
                     'editColumn' => true,
                 ],
-                'amount' => number_format($donor->amount, 0, '.', ','),
+//                'amount' => number_format($donor->amount, 0, '.', ','),
+                'projects' => '',
                 'status' => \Solidarity\Donor\Entity\Donor::getHrStatus($donor->status),
-                'monthly' => ($donor->monthly) ? 'Yes ': 'No',
+//                'monthly' => ($donor->monthly) ? 'Yes ': 'No',
                 'createdAt' => $donor->getCreatedAt()->format('d.m.Y'),
                 'updatedAt' => $donor->getUpdatedAt()->format('d.m.Y'),
             ];
@@ -75,7 +80,7 @@ class Donor extends TableView
             ['name' => 'email', 'label' => 'Email'],
             ['name' => 'status', 'label' => 'Status', 'filterData' => \Solidarity\Donor\Entity\Donor::getHrStatuses()],
             ['name' => 'monthly', 'label' => 'Monthly', 'filterData' => [0 => 'No', 1 => 'Yes']],
-            ['name' => 'amount', 'label' => 'Amount', 'rangeFilter' => ['type' => 'number']],
+//            ['name' => 'amount', 'label' => 'Amount', 'rangeFilter' => ['type' => 'number']],
             ['name' => 'updatedAt', 'label' => 'Updated at'],
             ['name' => 'createdAt', 'label' => 'Created at'],
         ];

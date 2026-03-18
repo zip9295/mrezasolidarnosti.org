@@ -36,6 +36,7 @@ class Donor implements FilterInterface
             'monthly' => $postData['monthly'],
             'comment' => $postData['comment'],
             'isActive' => $postData['isActive'],
+            'projects' => $postData['projects'],
             'status' => (isset($postData['status'])) ? $postData['status'] : 1,
 //            CSRF::TOKEN_NAME => $postData[CSRF::TOKEN_NAME],
         ];

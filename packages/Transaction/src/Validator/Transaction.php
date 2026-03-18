@@ -44,6 +44,8 @@ class Transaction implements ValidatorInterface
 
         // @TODO verify that donor has entered more than entered amount in the form
 
+        // todo verify that assigned donor matches beneficiary type/project (educator, beneficiary)
+
         if (!$this->csrf->validate($data)) {
             $this->messages['general'][] = 'Invalid form key.';
             $valid = false;
