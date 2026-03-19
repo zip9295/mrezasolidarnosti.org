@@ -4,7 +4,7 @@ import MediaLibrary from "https://skeletor.greenfriends.systems/skeletorjs/src/M
 import {theme as themeConfig} from "./theme.js";
 import {modes} from "https://skeletor.greenfriends.systems/skeletorjs/src/Theme/modes.js";
 
-const navigation = new Navigation({theme:themeConfig, defaultTheme: modes.light, isOpenOnInit: true});
+const navigation = new Navigation({theme:themeConfig, defaultTheme: modes.dark, isOpenOnInit: true});
 navigation.init();
 
 const toTop = new ToTop(document.getElementById('main') ?? null);

@@ -22,7 +22,7 @@ class BeneficiaryController extends AjaxCrudController
     const TITLE_UPDATE_SUCCESS = "Osteceni izmenjen uspesno.";
     const TITLE_CREATE_SUCCESS = "Osteceni kreiran uspesno.";
     const TITLE_DELETE_SUCCESS = "Osteceni obrisan uspesno.";
-    const PATH = 'beneficiary';
+    const PATH = '/beneficiary/beneficiary';
 
     /**
      * @param Beneficiary $service
@@ -43,17 +43,39 @@ class BeneficiaryController extends AjaxCrudController
 
     public function form(): Response
     {
-        $this->formData['periods'] = $this->period->getFilterData(['active' => true]);
+        $id = $this->getRequest()->getAttribute('id');
+        $model = null;
+        if ($id) {
+            $model = $this->service->getById($id);
+        }
         $this->formData['schools'] = $this->school->getFilterData();
-        $this->formData['projects'] = $this->project->getFilterData();
+        $periods = $this->period->getEntities(['active' => true]);
+        $assignedProjects = [];
         if ($this->getSession()->getStorage()->offsetGet('loggedInEntityType') === 'delegate') {
             $delegate = $this->delegate->getById($this->getSession()->getStorage()->offsetGet('loggedIn'));
-            $projects = [];
             foreach ($delegate->projects as $project) {
-                $projects[] = $project->code;
+                $assignedProjects[] = $project;
             }
-            $this->formData['assignedProjects'] = $projects;
+        } else {
+            $assignedProjects = $this->project->getEntities();
         }
+        $assignedPeriods = [];
+        foreach ($periods as $period) {
+            foreach ($assignedProjects as $project) {
+                if ($project->id === $period->project->id) {
+                    $assignedPeriods[] = $period;
+                }
+            }
+        }
+        $this->formData['assignedProjects'] = $assignedProjects;
+        $this->formData['assignedPeriods'] = $assignedPeriods;
+
+        $paymentMethods = [];
+        if($model) {
+            $paymentMethods = $model->getPaymentMethods();
+        }
+        $this->formData['paymentMethods'] = $paymentMethods;
+
 
         return parent::form();
     }

@@ -16,6 +16,8 @@ class Beneficiary implements FilterInterface
     {
         // todo add validation for maxAmount from project if set for registered projects when saving
 
+        //$postData['paymentMethods']
+        //$postData['registeredProjects']);
         $data = [
             'name' => trim($postData['name'] ?? ''),
             'accountNumber' => trim($postData['accountNumber'] ?? ''),
