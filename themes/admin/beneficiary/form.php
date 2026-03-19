@@ -61,7 +61,6 @@ $form->addTab($mspTab);
 
 $formRenderer = new TabbedFormRenderer($form, $data['formTitle']);
 
-// Prepare existing registered periods for JS
 $existingRegisteredPeriods = [];
 if ($data['model']?->registeredPeriods) {
     foreach ($data['model']->registeredPeriods as $rp) {
@@ -73,29 +72,22 @@ if ($data['model']?->registeredPeriods) {
     }
 }
 
-// Inject registered periods section inside the form tab
-$registeredPeriodsHtml = '
-<div class="registered-periods-section" style="padding: 10px 0;"
-     id="registered-periods-container"
-     data-periods="' . htmlspecialchars(json_encode($data['periods'])) . '"
-     data-projects="' . htmlspecialchars(json_encode($data['projects'])) . '"
-     data-existing="' . htmlspecialchars(json_encode($existingRegisteredPeriods)) . '">
-    <h4>Registered Periods</h4>
-    <table style="width: 100%; border-collapse: collapse;">
-        <thead>
-            <tr>
-                <th style="text-align: left; padding: 8px;">Project</th>
-                <th style="text-align: left; padding: 8px;">Period</th>
-                <th style="text-align: left; padding: 8px;">Amount</th>
-                <th style="padding: 8px; width: 60px;"></th>
-            </tr>
-        </thead>
-        <tbody id="registered-periods-body">
-        </tbody>
-    </table>
-    <button type="button" id="add-period-row" style="margin-top: 10px;" class="btn btn-sm btn-primary">+ Add Period</button>
-</div>';
+$registeredProjectsTab = (new Tab('Registrovani Projekti'))
+    ->addInputGroup((new InputGroup(width: InputGroupWidth::FULL_WIDTH)));
 
-$formRenderer->setAdditionalTabContent($mspTab, $registeredPeriodsHtml);
+$registeredPeriodsHTML = $this->fetch('/beneficiary/registeredProjectsInForm',
+    ['projects' => $data['assignedProjects'], 'periods' => $data['assignedPeriods'], 'existingRegisteredPeriods' => $existingRegisteredPeriods]
+);
+$formRenderer->setAdditionalTabContent($registeredProjectsTab, $registeredPeriodsHTML);
+$form->addTab($registeredProjectsTab);
+
+
+$paymentMethodsTab = (new Tab('Načini plaćanja'))
+    ->addInputGroup((new InputGroup(width: InputGroupWidth::FULL_WIDTH)));
+$paymentMethodsHTML = $this->fetch('/beneficiary/paymentMethodsInForm', ['paymentMethods' => $data['paymentMethods']]);
+$formRenderer->setAdditionalTabContent($paymentMethodsTab, $paymentMethodsHTML);
+$form->addTab($paymentMethodsTab);
+
+
 ?>
 <?= $formRenderer->render() ?>

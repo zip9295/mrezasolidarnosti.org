@@ -214,4 +214,65 @@ form:has(.selectedService) .fullWidth:has(#totalWithoutVAT) .inputContainer {
   flex-basis: 100%;
 }
 
+#registeredProjects {
+  grid-column: 1/-1;
+}
+#registeredProjects #registeredProjectsList {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+#registeredProjects #registeredProjectsList .registeredPeriod {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  border-bottom: 1px solid var(--colorOnBorders);
+  padding-bottom: 2rem;
+  border-top: 1px solid var(--colorOnBorders);
+  padding-top: 1rem;
+}
+#registeredProjects #registeredProjectsList .registeredPeriod input[type=number] {
+  min-width: 150px;
+}
+#registeredProjects #registeredProjectsList .registeredPeriod .deleteRegisteredPeriod {
+  margin-top: auto;
+  margin-bottom: 0;
+  margin-left: auto;
+  padding: 0.57rem 0.7rem;
+}
+#registeredProjects #addRegisteredPeriod {
+  margin-top: 0;
+}
+
+#paymentMethodsBeneficiary {
+  grid-column: 1/-1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+#paymentMethodsBeneficiary .paymentMethod .paymentMethodHandle label {
+  border: 1px solid var(--colorOnBorders);
+  border-radius: 7px;
+  background: var(--colorSurfaceMixed-200);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+#paymentMethodsBeneficiary .paymentMethod .paymentMethodHandle label input {
+  accent-color: var(--colorPrimary-500);
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+}
+#paymentMethodsBeneficiary .paymentMethod .paymentMethodHandle label input:checked {
+  opacity: 1;
+}
+#paymentMethodsBeneficiary .paymentMethod .inputContainer {
+  margin-top: 1rem;
+}
+#paymentMethodsBeneficiary .paymentMethod .inputContainer.hidden {
+  display: none;
+}
+
 /*# sourceMappingURL=style.css.map */
